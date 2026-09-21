@@ -28,6 +28,7 @@ export function PlayerForm({ action, mode, initialValues }: PlayerFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [version, setVersion] = useState(initialValues?.version ?? 0);
   const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadErrorCode, setUploadErrorCode] = useState('');
   const [uploading, setUploading] = useState(false);
   const [formValues, setFormValues] = useState(() => ({
     firstName: initialValues?.firstName ?? '',
@@ -83,6 +84,7 @@ export function PlayerForm({ action, mode, initialValues }: PlayerFormProps) {
     }
     setUploading(true);
     setUploadMessage('');
+    setUploadErrorCode('');
     const body = new FormData();
     body.set('avatar', input.files[0]);
     body.set('expectedVersion', String(version));
@@ -94,17 +96,21 @@ export function PlayerForm({ action, mode, initialValues }: PlayerFormProps) {
       const result = (await response.json()) as {
         ok: boolean;
         value?: { version: number };
+        code?: string;
         message?: string;
       };
       if (result.ok && result.value) {
         setVersion(result.value.version);
         form.reset();
+        setUploadErrorCode('');
         setUploadMessage('Awatar zapisano.');
         router.refresh();
       } else {
+        setUploadErrorCode(result.code ?? '');
         setUploadMessage(result.message ?? 'Nie udało się zapisać awatara.');
       }
     } catch {
+      setUploadErrorCode('');
       setUploadMessage('Nie udało się potwierdzić zapisu. Spróbuj ponownie.');
     } finally {
       setUploading(false);
@@ -194,9 +200,17 @@ export function PlayerForm({ action, mode, initialValues }: PlayerFormProps) {
             <input accept="image/jpeg,image/png,image/webp" name="avatar" type="file" />
           </label>
           {uploadMessage ? (
-            <p className="form-message" role="status">
-              {uploadMessage}
-            </p>
+            <div
+              className={`form-message ${uploadErrorCode ? 'error-message' : ''}`}
+              role={uploadErrorCode ? 'alert' : 'status'}
+            >
+              <p>{uploadMessage}</p>
+              {uploadErrorCode === 'VERSION_CONFLICT' ? (
+                <button type="button" onClick={() => window.location.reload()}>
+                  Odśwież dane
+                </button>
+              ) : null}
+            </div>
           ) : null}
           <button disabled={uploading} type="submit">
             {uploading ? 'Wysyłanie…' : 'Zapisz awatar'}

@@ -12,7 +12,11 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "build:runtime": "tsc -p tsconfig.worker.json && node scripts/rewire-runtime.mjs",
+    "benchmark": "tsx scripts/benchmark.ts",
+    "worker:elo": "tsx src/workers/elo/main.ts",
+    "worker:elo:once": "tsx -e \"import { runOnce } from './src/workers/elo/run-once.ts'; runOnce().then(() => process.exit(0)).catch(() => process.exit(1))\""
   },
   "dependencies": {
     "@mikro-orm/core": "7.2.0",

@@ -11,11 +11,19 @@ interface ConfirmDeleteProps {
   ) => Promise<DeletePlayerState>;
   id: string;
   version: number;
+  leagueCount?: number;
+  matchCount?: number;
 }
 
 const initialState: DeletePlayerState = { status: 'idle' };
 
-export function ConfirmDelete({ action, id, version }: ConfirmDeleteProps) {
+export function ConfirmDelete({
+  action,
+  id,
+  version,
+  leagueCount = 0,
+  matchCount = 0,
+}: ConfirmDeleteProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const dialog = useRef<HTMLDialogElement>(null);
   const router = useRouter();
@@ -33,13 +41,29 @@ export function ConfirmDelete({ action, id, version }: ConfirmDeleteProps) {
       <button className="danger secondary" onClick={() => dialog.current?.showModal()}>
         Usuń gracza
       </button>
-      <dialog ref={dialog}>
+      <dialog aria-labelledby="delete-player-title" ref={dialog}>
         <form action={formAction} className="dialog-card">
           <input name="id" type="hidden" value={id} />
           <input name="expectedVersion" type="hidden" value={version} />
-          <h2>Usunąć gracza?</h2>
+          <h2 id="delete-player-title">Usunąć gracza?</h2>
           <p>Profil zniknie z listy, ale historia i pseudonim pozostaną zachowane.</p>
-          {state.status === 'error' ? <p role="alert">{state.message}</p> : null}
+          {(leagueCount > 0 || matchCount > 0) && (
+            <p>
+              Gracz pozostanie widoczny historycznie w {leagueCount}{' '}
+              {leagueCount === 1 ? 'lidze' : 'ligach'} i {matchCount}{' '}
+              {matchCount === 1 ? 'meczu' : 'meczach'}.
+            </p>
+          )}
+          {state.status === 'error' ? (
+            <div className="error-message" role="alert">
+              <p>{state.message}</p>
+              {state.code === 'VERSION_CONFLICT' ? (
+                <button type="button" onClick={() => window.location.reload()}>
+                  Odśwież dane
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <div className="button-row">
             <button type="button" className="secondary" onClick={() => dialog.current?.close()}>
               Anuluj

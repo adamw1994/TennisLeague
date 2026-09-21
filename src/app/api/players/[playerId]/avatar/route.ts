@@ -23,7 +23,7 @@ function errorResponse(error: unknown, startedAt: number): Response {
   if (!(error instanceof DomainError)) {
     return Response.json(
       { ok: false, code: 'INTERNAL_ERROR', message: 'Nie udało się zapisać awatara.' },
-      { status: 500 },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
     );
   }
   const body = toActionError(error);
@@ -37,7 +37,10 @@ function errorResponse(error: unknown, startedAt: number): Response {
           : error.code === 'RATE_LIMITED'
             ? 429
             : 400;
-  return Response.json(body, { status });
+  return Response.json(body, {
+    status,
+    headers: { 'Cache-Control': 'no-store' },
+  });
 }
 
 async function uploadClientKey(request: NextRequest): Promise<string> {
@@ -117,7 +120,7 @@ export async function GET(
     const avatar = await withDb(em => getAvatar(em, playerId));
     const etag = `"${createHash('sha256').update(avatar.bytes).digest('base64url')}"`;
     const headers = {
-      'Cache-Control': 'public, max-age=31536000, immutable',
+      'Cache-Control': 'public, no-cache',
       'Content-Type': 'image/webp',
       ETag: etag,
       'X-Content-Type-Options': 'nosniff',

@@ -27,6 +27,8 @@ interface PlayerRow {
   updated_at: Date | string;
   deleted_at: Date | string | null;
   has_avatar: boolean;
+  league_count: number;
+  match_count: number;
 }
 
 function dto(row: PlayerRow): PlayerDto {
@@ -42,8 +44,8 @@ function dto(row: PlayerRow): PlayerDto {
     updatedAt: iso(row.updated_at),
     deletedAt: row.deleted_at ? iso(row.deleted_at) : null,
     avatarVersion: row.has_avatar ? row.version : null,
-    leagueCount: 0,
-    matchCount: 0,
+    leagueCount: Number(row.league_count),
+    matchCount: Number(row.match_count),
   };
 }
 
@@ -67,9 +69,18 @@ function encodeCursor(row: PlayerRow): string {
 
 const columns = `p.id, p.first_name, p.last_name, p.nickname, p.version,
   p.created_at, p.updated_at, p.deleted_at,
-  (a.player_id is not null) as has_avatar`;
+  (a.player_id is not null) as has_avatar,
+  (select count(*)::int
+     from league_players lp
+     join leagues l on l.id = lp.league_id and l.deleted_at is null
+    where lp.player_id = p.id) as league_count,
+  (select count(distinct msp.match_id)::int
+     from match_side_players msp
+     join matches m on m.id = msp.match_id and m.deleted_at is null
+     join leagues l on l.id = m.league_id and l.deleted_at is null
+    where msp.player_id = p.id) as match_count`;
 
-export async function listPlayers(
+async function listPlayersLegacy(
   em: EntityManager,
   cursor?: string,
 ): Promise<Page<PlayerDto>> {
@@ -89,6 +100,56 @@ export async function listPlayers(
     items: pageRows.map(dto),
     nextCursor:
       rows.length > 25 && pageRows.at(-1) ? encodeCursor(pageRows.at(-1)!) : null,
+  };
+}
+
+export interface ListPlayersOptions {
+  cursor?: string;
+  search?: string;
+}
+
+export async function listPlayers(
+  em: EntityManager,
+  options: ListPlayersOptions,
+): Promise<Page<PlayerDto>>;
+export async function listPlayers(
+  em: EntityManager,
+  cursor?: string,
+): Promise<Page<PlayerDto>>;
+export async function listPlayers(
+  em: EntityManager,
+  input?: string | ListPlayersOptions,
+): Promise<Page<PlayerDto>> {
+  if (typeof input === 'string' || input === undefined) {
+    return listPlayersLegacy(em, input);
+  }
+  const position = input.cursor ? decodeCursor(input.cursor) : undefined;
+  const search = input.search?.trim() || undefined;
+  const searchPattern = search ? `%${search}%` : undefined;
+  const rows = await em.getConnection().execute<PlayerRow[]>(
+    `select ${columns}
+       from players p
+       left join player_avatars a on a.player_id = p.id
+      where p.deleted_at is null
+        ${search ? 'and (p.nickname ilike ? or p.first_name ilike ? or p.last_name ilike ? or (p.first_name || \' \' || p.last_name) ilike ?)' : ''}
+        ${position ? 'and (p.last_name, p.first_name, p.id) > (?, ?, ?)' : ''}
+      order by p.last_name, p.first_name, p.id
+      limit ${search ? '1001' : '26'}`,
+    [
+      ...(searchPattern ? [searchPattern, searchPattern, searchPattern, searchPattern] : []),
+      ...(position ?? []),
+    ],
+  );
+  const normalizedSearch = search?.toLocaleLowerCase('pl-PL');
+  const visibleRows = normalizedSearch
+    ? rows.filter(row => [row.nickname, row.first_name, row.last_name]
+        .some(value => value.toLocaleLowerCase('pl-PL').includes(normalizedSearch)))
+    : rows;
+  const pageRows = visibleRows.slice(0, 25);
+  return {
+    items: pageRows.map(dto),
+    nextCursor:
+      visibleRows.length > 25 && pageRows.at(-1) ? encodeCursor(pageRows.at(-1)!) : null,
   };
 }
 

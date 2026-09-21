@@ -12,12 +12,29 @@ import {
 } from '@/shared/mutation';
 import { sanitizeAvatar } from './avatar';
 
-const name = (maximum: number) => z.string().trim().min(1).max(maximum);
+const name = (
+  maximum: number,
+  requiredMessage: string,
+  maximumMessage: string,
+) =>
+  z
+    .string({ error: requiredMessage })
+    .trim()
+    .min(1, requiredMessage)
+    .max(maximum, maximumMessage);
 
 export const PlayerInputSchema = z.strictObject({
-  firstName: name(80),
-  lastName: name(80),
-  nickname: name(40),
+  firstName: name(80, 'Podaj imię.', 'Imię może mieć maksymalnie 80 znaków.'),
+  lastName: name(
+    80,
+    'Podaj nazwisko.',
+    'Nazwisko może mieć maksymalnie 80 znaków.',
+  ),
+  nickname: name(
+    40,
+    'Podaj pseudonim.',
+    'Pseudonim może mieć maksymalnie 40 znaków.',
+  ),
 });
 
 export type PlayerInput = z.infer<typeof PlayerInputSchema>;

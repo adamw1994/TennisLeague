@@ -53,16 +53,16 @@ Ruling: Resolve plan examples against approved design and explicit appendix — 
 - Task 1: complete (commits 3133875..98f2a12, review clean); prior checkpoint — commit baeffb3; native PostgreSQL integration 4/4, typecheck/lint/build/Compose static validation passed.
 - Task 2: complete (commits 98f2a12..ff66e82, review clean)
 - Task 3: complete (commits ff66e82..45de040, review clean)
-- Task 4: in progress (base 45de040)
-- Task 5: pending
-- Task 6: pending
-- Task 7: pending
-- Task 8: pending
-- Task 9: pending
-- Task 10: pending
-- Task 11: pending
-- Task 12: pending
-- Task 13: pending
+- Task 4: complete (implementation df9ae00 plus review fixes in current Task 5 change set)
+- Task 5: complete in working tree; verification green, awaiting commit on user request
+- Task 6: complete in working tree; structural classic scores, immutable revisions, standings, correction and browser flows green
+- Task 7: complete in working tree; shared pure Elo calculator and deterministic replay green
+- Task 8: complete in working tree; immutable Elo publications, atomic append, membership and browser flows green
+- Task 9: complete in working tree; recoverable Elo worker, corrections, soft delete, leases, stale snapshots, retry and atomic publications implemented; unit/integration/typecheck/lint/build green
+- Task 10: complete in working tree; consistent Elo ranking/status snapshots, stale/pending match calculation state, polling UI and Elo correction/delete flows implemented; integration/typecheck/lint/build green
+- Task 11: complete in working tree; player/doubles statistics, league overview, profile and home navigation, filters/pagination, visibility rules, error/not-found and navigation E2E implemented; unit 72/72, integration 60/60, E2E 12/12, typecheck/lint/build green
+- Task 12: complete in working tree; Dockerfile, Compose local/external, separate migrator, runtime build/import rewiring, recovery CLI and idempotent restore commands for matches/revisions/leagues/players, operations documentation and recovery integration tests implemented; unit 72/72, recovery integration 3/3, typecheck/lint/build/runtime build green, Compose config valid. Full Docker smoke was blocked by Docker Desktop disk/startup failure; local PostgreSQL integration reached 62/63 with one pre-existing PostgreSQL 17 collation-dependent nickname test failure.
+- Task 13: complete in working tree; acceptance fixture, worker setup/teardown, 5 acceptance scenarios, full E2E 17/17, deterministic benchmark and backup/restore drill implemented and verified. Docker smoke remains environment-blocked.
 
 ## Resume 2026-09-17
 
@@ -101,3 +101,19 @@ Ruling: Resolve plan examples against approved design and explicit appendix — 
 - Task4 focused integration green: players10/10 plus existing schema-drift migration test; animated WebP fixture validated. E2E RED reached prepared Chromium and timed out on absent form as expected. Implementer wiring actions/route: limits before parse/decode, origin before upload, streamed6MiB cap, preflight/recheck version.
 - Task4 finalization: full E2E initially 1/3 exposed uncontrolled field reset after action error and swallowed Next redirect after delete; both fixed and focused green. Avatar HTTP E2E green (bad origin403, resize/WebP, nosniff, ETag304). Final67 unit/integration,4 E2E,typecheck,lint and build passed. Implementation commit df9ae00; independent review pending /root/review_players. Do not start Task5 until review resolves.
 - Task4 review found Important gaps: unchanged form retry loses its hidden idempotency token after action errors; avatar uses immutable one-year cache despite unversioned mutable identity; upload/delete VERSION_CONFLICT lack refresh actions; delete dialog has no accessible name. Minor: raw Zod validation messages are English. Fix round 1/5 must address all; do not start Task5.
+
+## Resume 2026-09-18 — macOS
+
+- Switched to the latest branch `feat/low-on-legs-mvp` and preserved the existing Task 4 implementation.
+- Resolved all Task 4 review findings: stable create token after errors, revalidation-safe avatar cache policy, refresh actions for version conflicts, accessible delete dialog, and Polish field validation messages.
+- Task 4 regression verification passed: typecheck, lint, unit, players integration, production build, and all five player E2E scenarios.
+- Implemented Task 5 in the current working tree: Migration004, relational league/member/team/match model, deterministic round-robin, atomic/idempotent creation, league queries/settings/deletion, real player relation counts, Polish responsive UI, and E2E for both classic modes.
+- PostgreSQL 18 test instance for this session runs locally on `127.0.0.1:55432`; integration database `low_on_legs_test`, E2E database `low_on_legs_e2e_test`. Stop the temporary cluster before ending the machine session.
+- Final Task 5 verification: unit 50/50, integration 35/35, league E2E 2/2, all player scenarios passed in the preceding full run, typecheck/lint/build clean. Report: `task-5-report.md`.
+- Implemented Task 6: Migration005, structural tennis results, MatchRevision history, atomic record/correction, classic completion and 5/0 or 4/2 standings. Fast4, normal sets, STB exclusion from games and mobile correction are covered. Report: `task-6-report.md`.
+- Implemented Task 7: one pure `calculateElo`/`replayElo` implementation for append and future worker replay, including doubles averages, half-away-from-zero rounding, individual floor 500 and chronological replay. Report: `task-7-report.md`.
+- Implemented Task 8: Migration006, complete immutable Elo publications, atomic pointer swap, monotonic match time, snapshot K, synchronous append when current, queued latest revision when stale, member join and ranking UI. Report: `task-8-report.md`.
+- Implemented Task 9: Elo corrections and soft delete, coalescing recoverable job queue, fenced worker claim/snapshot/publish/retry loop, heartbeats and worker race tests. Report: `task-9-report.md`.
+- Implemented Task 10: consistent ranking and match calculation DTOs, no-store Elo status endpoint, visible-card polling, stale-version notices, Elo correction/delete UI and query tests. Report: `task-10-report.md`.
+- Current verification before Task 11: unit 70/70, integration 58/58, worker typecheck, typecheck, lint, schema-drift check and production build green; the initial E2E rerun was blocked until Chromium was installed locally.
+- Task 11 verification: unit 72/72, integration 60/60, E2E 12/12 after installing Chromium into ignored `browsers/`, worker typecheck, typecheck, lint and production build green.

@@ -1,21 +1,30 @@
 import { defineEntity, p } from '@mikro-orm/postgresql';
 
+export { SportSchema } from './sport.entity';
 export { PlayerAvatarSchema } from '@/modules/players/avatar.entity';
 export { PlayerSchema } from '@/modules/players/player.entity';
-
-export const SportSchema = defineEntity({
-  name: 'Sport',
-  tableName: 'sports',
-  properties: {
-    id: p.uuid().primary(),
-    code: p.text().unique().check("\"code\" in ('TENNIS')"),
-    name: p.text(),
-  },
-});
-
-export class Sport extends SportSchema.class {}
-
-SportSchema.setClass(Sport);
+export { LeagueSchema } from '@/modules/leagues/league.entity';
+export { LeaguePlayerSchema } from '@/modules/leagues/membership.entity';
+export {
+  LeagueTeamPlayerSchema,
+  LeagueTeamSchema,
+} from '@/modules/leagues/team.entity';
+export {
+  MatchSchema,
+  MatchSidePlayerSchema,
+  MatchSideSchema,
+} from '@/modules/matches/match.entity';
+export { MatchRevisionSchema } from '@/modules/matches/revision.entity';
+export {
+  EloPublicationSchema,
+  EloRatingEventSchema,
+  EloRatingSchema,
+} from '@/modules/elo/publication.entity';
+export { EloRecalculationJobSchema } from '@/modules/elo/job.entity';
+export {
+  TennisMatchRuleSchema,
+  TennisSetSchema,
+} from '@/modules/tennis/score.entity';
 
 export const RequestTokenSchema = defineEntity({
   name: 'RequestToken',

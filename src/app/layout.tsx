@@ -18,7 +18,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <Link className="brand" href="/">
             Low on Legs
           </Link>
-          <Link href="/players">Gracze</Link>
+          <div className="nav-links">
+            <Link href="/players">Gracze</Link>
+            <Link href="/leagues">Ligi</Link>
+          </div>
         </nav>
         {children}
       </body>

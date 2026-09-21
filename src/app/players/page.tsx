@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Pagination } from '@/components/Pagination';
 import { withDb } from '@/db/orm';
 import { listPlayers } from '@/modules/players/queries';
 
@@ -7,10 +8,10 @@ export const dynamic = 'force-dynamic';
 export default async function PlayersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cursor?: string }>;
+  searchParams: Promise<{ cursor?: string; search?: string }>;
 }) {
-  const { cursor } = await searchParams;
-  const page = await withDb(em => listPlayers(em, cursor));
+  const { cursor, search } = await searchParams;
+  const page = await withDb(em => listPlayers(em, { cursor, search }));
   return (
     <main>
       <header className="page-header">
@@ -22,6 +23,14 @@ export default async function PlayersPage({
           Dodaj gracza
         </Link>
       </header>
+      <form className="search-form" method="get" role="search">
+        <label htmlFor="player-search">Szukaj gracza</label>
+        <div className="search-row">
+          <input id="player-search" name="search" defaultValue={search ?? ''} placeholder="Pseudonim lub nazwisko" />
+          <button type="submit">Szukaj</button>
+          {search ? <Link className="button secondary" href="/players">Wyczyść</Link> : null}
+        </div>
+      </form>
       {page.items.length === 0 ? (
         <section className="empty-state">
           <h2>Jeszcze nikogo tu nie ma</h2>
@@ -57,11 +66,7 @@ export default async function PlayersPage({
           ))}
         </ul>
       )}
-      {page.nextCursor ? (
-        <Link className="button secondary" href={`/players?cursor=${page.nextCursor}`}>
-          Następna strona
-        </Link>
-      ) : null}
+      <Pagination href={search ? `/players?search=${encodeURIComponent(search)}` : '/players'} nextCursor={page.nextCursor} />
     </main>
   );
 }

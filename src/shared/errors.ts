@@ -21,6 +21,7 @@ const messages: Record<string, string> = {
   MATCH_ALREADY_COMPLETED: 'Wynik tego meczu został już zapisany.',
   STRUCTURAL_LEAGUE_CHANGE_FORBIDDEN: 'Nie można zmienić struktury tej ligi.',
   ELO_RECALCULATION_FAILED: 'Nie udało się przeliczyć rankingu Elo.',
+  RECOVERY_SOURCE_NOT_FOUND: 'Nie znaleziono wskazanej aktywnej wersji do odzyskania.',
 };
 
 export class DomainError extends Error {
