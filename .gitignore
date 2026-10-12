@@ -9,3 +9,36 @@ browsers
 .env.*
 !.env.example
 *.tsbuildinfo
+
+# Local agent work logs and implementation planning
+.superpowers/
+docs/superpowers/
+
+# Local editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Runtime logs, backups, and local data
+*.log
+logs/
+backups/
+*.dump
+*.backup
+*.db
+*.sqlite
+*.sqlite3
+*.pid
+
+# Local credentials and machine-specific Compose configuration
+*.pem
+*.key
+*.p12
+*.pfx
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.yml

@@ -13,3 +13,23 @@ browsers
 backups
 *.dump
 *.sql
+
+# Local workspace metadata and credentials
+.superpowers
+docs/superpowers
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.pem
+*.key
+*.p12
+*.pfx
+*.backup
+*.db
+*.sqlite
+*.sqlite3
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.yml
