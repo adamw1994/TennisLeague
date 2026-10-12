@@ -1,0 +1,20 @@
+# This database and password are for local automated tests only.
+services:
+  postgres-test:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: low_on_legs_test
+      POSTGRES_PASSWORD: test-only-password
+      POSTGRES_USER: postgres
+    ports:
+      - '127.0.0.1:55432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d low_on_legs_test']
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    volumes:
+      - low-on-legs-test-data:/var/lib/postgresql
+
+volumes:
+  low-on-legs-test-data:

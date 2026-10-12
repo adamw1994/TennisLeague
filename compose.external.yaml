@@ -1,0 +1,48 @@
+name: low-on-legs-external
+
+x-external-environment: &external-environment
+  APP_ORIGIN: ${APP_ORIGIN:?APP_ORIGIN is required}
+  DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+  DATABASE_SSL_MODE: ${DATABASE_SSL_MODE:-require}
+  PGSSLROOTCERT: ${PGSSLROOTCERT:-}
+  CLIENT_KEY_HMAC_SECRET: ${CLIENT_KEY_HMAC_SECRET:?CLIENT_KEY_HMAC_SECRET is required}
+
+services:
+  migrate:
+    image: ${APP_IMAGE:-low-on-legs:local}
+    environment: *external-environment
+    command: ["node", "dist/src/db/migrate.js"]
+    restart: "no"
+
+  app:
+    image: ${APP_IMAGE:-low-on-legs:local}
+    environment: *external-environment
+    command: ["node", "node_modules/.bin/next", "start"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+  worker:
+    image: ${APP_IMAGE:-low-on-legs:local}
+    environment:
+      <<: *external-environment
+      ELO_WORKER_HEALTH_FILE: /tmp/elo-worker-health
+      ELO_WORKER_POLL_MS: ${ELO_WORKER_POLL_MS:-1000}
+    command: ["node", "dist/src/workers/elo/main.js"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const fs=require('node:fs'); try { if (Date.now() - fs.statSync('/tmp/elo-worker-health').mtimeMs > 15000) process.exit(1); } catch { process.exit(1); }\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped

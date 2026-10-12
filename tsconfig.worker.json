@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": ".",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": [
+    "src/db/**/*.ts",
+    "src/modules/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/workers/**/*.ts",
+    "scripts/**/*.ts",
+    "mikro-orm.config.ts"
+  ],
+  "exclude": ["node_modules", "tests", "src/app", "src/components"]
+}

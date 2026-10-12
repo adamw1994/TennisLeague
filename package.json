@@ -1,0 +1,43 @@
+{
+  "name": "low-on-legs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "build:runtime": "tsc -p tsconfig.worker.json && node scripts/rewire-runtime.mjs",
+    "benchmark": "tsx scripts/benchmark.ts",
+    "worker:elo": "tsx src/workers/elo/main.ts",
+    "worker:elo:once": "tsx -e \"import { runOnce } from './src/workers/elo/run-once.ts'; runOnce().then(() => process.exit(0)).catch(() => process.exit(1))\""
+  },
+  "dependencies": {
+    "@mikro-orm/core": "7.2.0",
+    "@mikro-orm/migrations": "7.2.0",
+    "@mikro-orm/postgresql": "7.2.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sharp": "0.35.4",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@mikro-orm/cli": "7.2.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.3",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.5",
+    "tsx": "4.23.13",
+    "typescript": "6.0.3",
+    "vitest": "5.0.1"
+  }
+}
